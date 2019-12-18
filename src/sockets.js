@@ -63,8 +63,8 @@ module.exports = io => {
         .then(user => {
           const { name, numberOfGames, numberOfVictories, token } = user;
 
-          console.log("the user object is", user);
-          userDetails = {
+          console.log("the user object is ", user);
+          userDetails = { 
             email,
             name,
             numberOfGames,
