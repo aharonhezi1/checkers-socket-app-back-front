@@ -58,6 +58,7 @@ module.exports = io => {
           console.log(user);
 
           if (user.email) {
+            user = { ...user, id: socket.id };
             io.sockets.connected[socketId].emit("auth", { user });
           } else {
             throw new Error();
@@ -136,7 +137,26 @@ module.exports = io => {
     socket.on("reply", reply => {
       console.log(reply);
       isReply = false;
+      if (reply.quit) {
+      socket.leave(reply.room);
+      const rivalPlayer = Object.keys(io.sockets.adapter.rooms[reply.room].sockets)[0];
+      loginUsers = loginUsers.map(user => {
+        console.log(user, socket.id);
 
+        if (user && (user.id === socket.id|| user.id===rivalPlayer) )
+          return { ...user, isAvailable: true };
+        else return user;
+      });
+      loginUsers.forEach(user => {
+        if (user)
+          io.sockets.connected[user.id].emit(
+            "loginUsers",
+            loginUsers.map(user => ({ ...user, email: "" }))
+          );
+      });
+     return io.sockets.connected[rivalPlayer].emit("answer", reply);
+    
+      }
       console.log("reply", reply);
       reply = { ...reply, room: reply.reqUserId };
       io.sockets.connected[reply.reqUserId].emit("answer", reply);
@@ -149,20 +169,19 @@ module.exports = io => {
 
       socket.join(room);
       loginUsers = loginUsers.map(user => {
-        console.log(user,socket.id);
-        
+        console.log(user, socket.id);
+
         if (user && user.id === socket.id)
           return { ...user, isAvailable: false };
-          else return user
+        else return user;
       });
-      loginUsers.forEach(user=>{
-        if(user)
-        io.sockets.connected[user.id].emit(
-          "loginUsers",
-          loginUsers.map(user => ({ ...user, email: "" }))
-        );
-      })
-     
+      loginUsers.forEach(user => {
+        if (user)
+          io.sockets.connected[user.id].emit(
+            "loginUsers",
+            loginUsers.map(user => ({ ...user, email: "" }))
+          );
+      });
 
       clients = Object.keys(io.sockets.adapter.rooms[room].sockets);
 

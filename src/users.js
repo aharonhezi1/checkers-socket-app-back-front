@@ -5,9 +5,9 @@ const io = require("socket.io")(http);
 const router = new express.Router();
 const jwt = require("jsonwebtoken");
 
-const sequelizeModule=require('./sequelize')
-const sequelize=sequelizeModule.sequelize;
-const User=sequelizeModule.User
+const sequelizeModule = require("./sequelize");
+const sequelize = sequelizeModule.sequelize;
+const User = sequelizeModule.User;
 const users = [];
 
 router.get("/api/users", (req, res) => {
@@ -53,11 +53,11 @@ router.post("/api/users/login", async (req, res) => {
       users.push(userDetails);
       console.log(users);
       io.on("connection", socket => {
-     socket.emit('users',users);
-      })
+        socket.emit("users", users);
+      });
       res.send();
-    }else{
-      throw new Error()
+    } else {
+      throw new Error();
     }
   } catch (e) {
     res.status(401).send(e);
@@ -75,6 +75,21 @@ router.post("/api/users/signup", async (req, res) => {
     res.status(401).send({ error: "User already exists!" });
   }
 });
-
+router.patch("/api/users/increment", async (req,res) => {
+  const{isGames,isWins,user}=req.body
+  console.log(' isGames,isWins,user',isGames,isWins,user);
+  
+  try {
+     await User.update({
+       numberOfGames:isGames?sequelize.literal('numberOfGames+1'):sequelize.literal('numberOfGames+0'),
+      numberOfVictories:isWins?sequelize.literal('numberOfVictories+1'):sequelize.literal('numberOfVictories+0')},
+      {where:{
+        email:user.email
+      }})
+  } catch (error) {
+    console.log(error);
+    
+  }
+});
 
 module.exports = router;
