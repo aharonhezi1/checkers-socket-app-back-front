@@ -15,17 +15,7 @@ const User = sequelizeModule.User;
 // app.use(cors())
 // app.use(express.json())
 // app.use(userRoute)
-function socketRecursive(socket, eventName, req) {
-  if (req) {
-    console.log("socketRecursive", socket);
-    console.log(eventName, req);
-    socket.emit(eventName, req);
-  } else {
-    setTimeout(() => {
-      socketRecursive(socket, eventName, req);
-    }, 1000);
-  }
-}
+
 module.exports = io => {
   let loginUsers = [];
   io.on("connection", socket => {
@@ -33,21 +23,32 @@ module.exports = io => {
     console.log("hello there! ");
     let clients;
     socket.on("login", newUser => {
-      const { email, password } = newUser;
+      console.log('newUser',newUser);
+      
+    // const { email, password ,token} = newUser;
       console.log("New user is:", newUser);
+      let validate;
+      if ( newUser.token){
+        validate={token:newUser.token}        
+      }else{
+        const {email,password}=newUser
+       
+        validate={password,email}
+      }
+      
 
       let userDetails;
       const socketClientsIds = Object.keys(io.sockets.clients().connected);
       const socketId = socket.id;
 
-      //
-      User.findOne({ where: { email, password } })
+     
+      User.findOne({ where:validate})
         .then(res => {
           res = JSON.stringify(res);
           let user = JSON.parse(res);
           user = { ...user, id: socketId };
           const email = user.email;
-          console.log(email);
+          console.log('res',res);
           if (
             loginUsers.some(user => user.email === email) &&
             loginUsers.length !== 0
@@ -56,21 +57,22 @@ module.exports = io => {
             throw new Error();
           }
           console.log(user);
+          const token =jwt.sign({ email:user.email }, process.env.JWT_SECRET, {
+            expiresIn: "3h"
+          });
 
           if (user.email) {
-            user = { ...user, id: socket.id };
+            user = { ...user, id: socket.id,token };
             io.sockets.connected[socketId].emit("auth", { user });
           } else {
             throw new Error();
           }
 
-          const token = jwt.sign({ email }, process.env.JWT_SECRET, {
-            expiresIn: "3h"
-          });
+         
           return { ...user, token };
         })
         .then(user => {
-          const { name, numberOfGames, numberOfVictories, token } = user;
+          const { email,name, numberOfGames, numberOfVictories, token } = user;
 
           console.log("the user object is", user);
           userDetails = {
@@ -102,7 +104,7 @@ module.exports = io => {
 
           User.update(
             { token: token },
-            { where: { email, password } }
+            { where: { email } }
           ).then(res => console.log("User.update", res));
         })
         .catch(err => {
@@ -237,6 +239,8 @@ module.exports = io => {
       });
     });
     socket.on("disconnect", () => {
+      console.log('disconnect');
+      
       const socketClientsIds = Object.keys(io.sockets.clients().connected);
       const socketId = socket.id;
       loginUsers = loginUsers.filter(user => user.id !== socketId);
