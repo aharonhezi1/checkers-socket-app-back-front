@@ -20,7 +20,7 @@ module.exports = io => {
   let loginUsers = [];
   io.on("connection", socket => {
     let rooms = [];
-    console.log("hello there! ");
+    console.log("hello there! "); 
     let clients;
     socket.on("login", newUser => {
       console.log('newUser',newUser);
@@ -141,7 +141,10 @@ module.exports = io => {
       isReply = false;
       if (reply.quit) {
       socket.leave(reply.room);
-      const rivalPlayer = Object.keys(io.sockets.adapter.rooms[reply.room].sockets)[0];
+      let rivalPlayer
+      if(io.sockets.adapter.rooms[reply.room]){
+         rivalPlayer = Object.keys(io.sockets.adapter.rooms[reply.room].sockets)[0];
+      }
       loginUsers = loginUsers.map(user => {
         console.log(user, socket.id);
 
@@ -156,7 +159,9 @@ module.exports = io => {
             loginUsers.map(user => ({ ...user, email: "" }))
           );
       });
+      if(!!rivalPlayer)
      return io.sockets.connected[rivalPlayer].emit("answer", reply);
+     else return;
     
       }
       console.log("reply", reply);
@@ -232,9 +237,8 @@ module.exports = io => {
       clients.forEach(client => {
         console.log(client);
         io.sockets.connected[client].emit("setBoard", {
-          isBlackPlayerTurn: !nextMove.isBlackPlayerTurn,
-          redPiecesPosition: nextMove.redPiecesPosition,
-          blackPiecesPosition: nextMove.blackPiecesPosition
+          ...nextMove,
+          isBlackPlayerTurn: !nextMove.isBlackPlayerTurn          
         });
       });
     });
