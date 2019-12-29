@@ -3,8 +3,8 @@ const app = express();
 const http = require("http").Server(app);
 const io = require("socket.io")(http);
 const jwt = require("jsonwebtoken");
-const redis = require("socket.io-redis");
-io.adapter(redis({ host: "localhost", port: 6379 }));
+// const redis = require("socket.io-redis");
+// io.adapter(redis({ host: "localhost", port: 6379 }));
 
 const sequelizeModule = require("./sequelize");
 const sequelize = sequelizeModule.sequelize;
