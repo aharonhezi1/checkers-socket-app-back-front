@@ -9,12 +9,7 @@ io.adapter(redis({ host: "localhost", port: 6379 }));
 const sequelizeModule = require("./sequelize");
 const sequelize = sequelizeModule.sequelize;
 const User = sequelizeModule.User;
-// const userRoute=require("./users");
-// const cors = require('cors')
 
-// app.use(cors())
-// app.use(express.json())
-// app.use(userRoute)
 
 module.exports = io => {
   let loginUsers = [];
@@ -25,7 +20,6 @@ module.exports = io => {
     socket.on("login", newUser => {
       console.log('newUser',newUser);
       
-    // const { email, password ,token} = newUser;
       console.log("New user is:", newUser);
       let validate;
       if ( newUser.token){
@@ -90,9 +84,6 @@ module.exports = io => {
           ) {
             loginUsers.push(userDetails);
           }
-          // socket.emit('loginUsers',loginUsers);
-          // socketRecursive(socket,"loginUsers",userDetails);
-          // console.log('socketClients',socketClientsIds)
           socketClientsIds.forEach(client => {
             console.log(client);
             io.sockets.connected[client].emit(
@@ -108,7 +99,6 @@ module.exports = io => {
           ).then(res => console.log("User.update", res));
         })
         .catch(err => {
-          // socket.emit("loginUsers", { error: "Ahthentication failed!" });
           console.log("Ahthentication failed!");
           io.sockets.connected[socketId].emit("auth", {
             error: "Ahthentication failed!"
@@ -211,7 +201,7 @@ module.exports = io => {
           [7, 4],
           [7, 6]
         ],
-        isBlackPlayerTurn: false, //clients.length > 1,
+        isBlackPlayerTurn: false,
         redPiecesPosition: [
           [0, 1],
           [0, 3],
@@ -233,6 +223,7 @@ module.exports = io => {
       clients = io.sockets.adapter.rooms[nextMove.room].sockets;
       clients = Object.keys(clients);
       console.log("postBoard", nextMove);
+      let winner
 
       clients.forEach(client => {
         console.log(client);
