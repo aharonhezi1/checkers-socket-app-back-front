@@ -6,10 +6,11 @@ const cors = require('cors')
 const server = app.listen(process.env.PORT);
 
 
-var io = require('socket.io').listen(server);
+const io = require('socket.io').listen(server);
 
 app.use(cors())
 app.use(express.json())
 app.use(userRoute)
 
+const sockets=require('./sockets')(io)
 

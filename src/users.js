@@ -11,7 +11,7 @@ const User = sequelizeModule.User;
 const users = [];
 
 router.get("/api/users", (req, res) => {
-  // User.sync({ force: true }).then(() => {
+ // User.sync({ force: true }).then(() => {
   try {
     User.findAll().then(users => {
       // console.log('success',users)
@@ -22,7 +22,7 @@ router.get("/api/users", (req, res) => {
     console.log("eroor", e);
     res.status(400).send(e);
   }
-});
+})
 
 router.post("/api/users", async (req, res) => {
   const user = req.body;
